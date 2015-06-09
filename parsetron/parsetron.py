@@ -13,7 +13,7 @@ __doc__ = \
     **parsetron.py**, a semantic parser written in pure Python.
     """
 
-__version__ = "0.1"
+__version__ = "0.1.0"
 __author__ = 'Xuchen Yao'
 
 PY_3 = sys.version.startswith('3')

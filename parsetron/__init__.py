@@ -1,6 +1,50 @@
-__author__ = 'KITT.AI'
-__email__ = 'kittdotai@gmail.com'
-__version__ = '0.1.0'
-
+import parsetron
 from parsetron import *
 
+__author__ = 'KITT.AI'
+__version__ = parsetron.__version__
+
+# Note: whenever this is updated, update docs/api.rst too
+# __all__ = [
+#     "ParseException", 
+#     "GrammarException", 
+#     "MetaGrammar", 
+#     "Grammar", 
+#     "GrammarElement", 
+#     "StringCs", 
+#     "String", 
+#     "SetCs", 
+#     "Set", 
+#     "RegexCs", 
+#     "Regex", 
+#     "GrammarExpression", 
+#     "And", 
+#     "Or", 
+#     "GrammarElementEnhance", 
+#     "Optional", 
+#     "OneOrMore", 
+#     "ZeroOrMore", 
+#     "NULL", 
+#     "GrammarImpl", 
+#     "Production", 
+#     "ExpressionProduction", 
+#     "ElementProduction", 
+#     "ElementEnhanceProduction", 
+#     "TreeNode", 
+#     "Edge", 
+#     "Agenda", 
+#     "ParseResult", 
+#     "Chart", 
+#     "IncrementalChart", 
+#     "ChartRule", 
+#     "TopDownInitRule", 
+#     "BottomUpScanRule", 
+#     "TopDownPredictRule", 
+#     "LeftCornerPredictScanRule", 
+#     "BottomUpPredictRule", 
+#     "TopDownScanRule", 
+#     "CompleteRule", 
+#     "ParsingStrategy", 
+#     "RobustParser", 
+#     "grammars",
+#     ]

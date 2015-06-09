@@ -2,6 +2,7 @@
 
 .cache
 .idea
+.DS_Store
 
 # C extensions
 *.so

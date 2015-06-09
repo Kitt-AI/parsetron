@@ -1,27 +1,69 @@
-.. complexity documentation master file, created by
-   sphinx-quickstart on Tue Jul  9 22:26:36 2013.
+.. _parsetron_index:
+
+.. Parsetron documentation master file, created by
+   sphinx-quickstart on Mon Apr 13 12:36:49 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. include:: ../README.rst
+***********************************
+Parsetron, a Robust Semantic Parser
+***********************************
 
-Contents:
-=========
+.. topic:: Abstract
 
+   Parsetron is a robust incremental natural language parser utilizing semantic
+   grammars for small focused domains. It is mainly used to convert natural
+   language command to executable API calls (e.g., *"blink my light twice"*).
+   Parsetron is written in pure Python (2.7), portable (a single ``parsetron.py``
+   file), and can be used in conjunction with a speech recognizer.
+
+:Author: Xuchen Yao from `KITT.AI <http://kitt.ai>`_
+
+Table of Contents
+=================
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   installation
-   usage
-   contributing
-   authors
-   history
+   quickstart
+   api
 
-Feedback
-========
+Introduction
+============
 
-If you have any suggestions or questions about **parsetron** feel free to email me
-at kittdotai@gmail.com.
 
-If you encounter any errors or problems with **parsetron**, please let me know!
-Open an Issue at the GitHub http://github.com/Kitt-AI/parsetron main repository.
+For sample syntax, refer to:
+
+http://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html
+
+https://pythonhosted.org/an_example_pypi_project/sphinx.html
+
+https://docs.python.org/devguide/documenting.html
+
+https://raw.githubusercontent.com/rtfd/readthedocs.org/master/docs/index.rst
+
+http://docs.readthedocs.org/en/latest/index.html
+
+Adding disqus and google analytics:
+
+https://github.com/whiteinge/eseth/blob/master/templates/layout.html#L151
+
+
+.. Quick Start
+   ===========
+
+   :ref:`parsetron_quickstart`
+
+
+   API docs
+   ========
+
+   :ref:`parsetron_api`
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
