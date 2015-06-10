@@ -1,5 +1,4 @@
 import re
-import types
 import sys
 import itertools
 import json
@@ -69,7 +68,7 @@ class MetaGrammar(type):
     def __new__(typ, name, bases, dct):
         if '__metaclass__' not in dct:
             # If user do::
-            # >>> from firebird import *
+            # >>> from parsetron import *
             # Then __new__() will be called with __metaclass__ in dct
             # If use constructs a real grammar, then __metaclass__ isn't in dct
             if "_grammar_" in dct:
@@ -109,6 +108,14 @@ class Grammar(object):
     def __new__(cls):
         return cls.__dict__['_grammar_']
 
+    @staticmethod
+    def test():
+        """
+        A method to be batch called by pytest (through ``test_grammars.py``).
+        Users should give examples of what this Grammar parses and use these
+        examples for testing.
+        """
+        raise NotImplementedError
 
 # ##### Unary Grammar Elements ######
 
@@ -151,6 +158,7 @@ class GrammarElement(object):
         self.is_terminal = True
         self.as_list = False
         self.ignore_in_result = False
+        self.name_is_set = False
 
     def set_name(self, name):
         """
@@ -190,7 +198,7 @@ class GrammarElement(object):
         raise NotImplementedError
 
     def prefix_with_class(self, default_name):
-        return self.__class__.__name__ + "(" + default_name + ")"
+        return self.__class__.__name__ + "(" + str(default_name) + ")"
 
     def set_result_action(self, *functions):
         """
@@ -226,7 +234,7 @@ class GrammarElement(object):
             return String(other)
         elif not isinstance(other, GrammarElement):
             raise GrammarException("can't construct grammar: %s + %s"
-                                   % (self, other))
+                                   % (self, str(other)))
         else:
             return other
 
@@ -351,12 +359,6 @@ class GrammarElement(object):
 
     def __hash__(self):
         return hash(id(self))
-
-    def __req__(self, other):
-        return self == other
-
-    def __rne__(self, other):
-        return not (self == other)
 
     def _parse(self, instring):
         """
@@ -571,11 +573,12 @@ class RegexCs(GrammarElement):
         if not result:
             raise ParseException
         else:
-            if self.match_whole and result.end() != len(instring):
-                # partial match
-                raise ParseException
-            else:
-                return True
+            # commented out: blocked by ^ + ... + $ patterns above
+            # if self.match_whole and result.end() != len(instring):
+            #     # partial match
+            #     raise ParseException
+            # else:
+            return True
 
     def default_name(self):
         return self.str
@@ -602,8 +605,6 @@ class GrammarExpression(GrammarElement):
         super(GrammarExpression, self).__init__()
 
         self.is_terminal = False
-        if isinstance(exprs, types.GeneratorType):
-            exprs = list(exprs)
         if isinstance(exprs, basestring):
             self.exprs = [String(exprs)]
         elif isinstance(exprs, (list, tuple)):
@@ -756,7 +757,7 @@ class Optional(GrammarElementEnhance):
             A => NULL
             A => B
         """
-        yield Production.factory(self, Null)
+        yield Production.factory(self, NULL)
         yield Production.factory(self, self.expr)
 
 
@@ -803,18 +804,18 @@ class ZeroOrMore(GrammarElementEnhance):
             A => OneOrMore(B)
 
         """
-        yield Production.factory(self, Null)
+        yield Production.factory(self, NULL)
         yield Production.factory(self, self.expr)
         yield Production.factory(self, [self.expr, self])
 
 
-class NULL(GrammarElement):
+class Null(GrammarElement):
     """
-    NULL state, used internally
+    Null state, used internally
     """
     def __init__(self):
-        super(NULL, self).__init__()
-        self.name = "NULL"
+        super(Null, self).__init__()
+        self.name = "Null"
 
     def _parse(self, instring):
         """
@@ -826,11 +827,11 @@ class NULL(GrammarElement):
         return False
 
     def default_name(self):
-        return "NULL"
+        return "Null"
 
 
-# make a global Null object shared by all productions
-Null = NULL().set_name("Null")
+# make a global NULL object shared by all productions
+NULL = Null().set_name("NULL")
 
 
 # ####################################
@@ -865,7 +866,7 @@ class GrammarImpl(object):
         self._eliminate_null_and_expand()
         self.terminal2prod = {}
         self.nonterminal2prod = {}
-        self.terminal2prod[Null] = NullProduction
+        self.terminal2prod[NULL] = NullProduction
         self.productions.add(NullProduction)
         self.goal_productions = set()
         for prod in self.productions:
@@ -893,9 +894,9 @@ class GrammarImpl(object):
         production *without*. For instance::
 
             S => Optional(A) B Optional(C)
-            Optional(A) => Null    --> remove
+            Optional(A) => NULL    --> remove
             Optional(A) => A
-            Optional(C) => Null
+            Optional(C) => NULL
             Optional(C) => C       --> remove
 
         becomes::
@@ -907,7 +908,7 @@ class GrammarImpl(object):
             S => Optional(A) B     --> added
             S => B                 --> added
 
-        The rational behind this is that Null elements call for a lot of extra
+        The rational behind this is that NULL elements call for a lot of extra
         computation and are highly ambiguous. This function  increases the size
         of grammar but helps gain extra parsing speed. In reality comparison
         of a parsing task:
@@ -922,10 +923,10 @@ class GrammarImpl(object):
         """
         null_productions = set()
         for prod in self.productions:
-            if all(type(rhs) is NULL for rhs in prod.rhs):
+            if all(type(rhs) is Null for rhs in prod.rhs):
                 null_productions.add(prod)
 
-        # remove all Null Productions
+        # remove all NULL Productions
         self.productions.difference_update(null_productions)
 
         null_elements = set(p.lhs for p in null_productions)
@@ -962,9 +963,9 @@ class GrammarImpl(object):
         # for each production *with* null, add a new production *without*
         # e.g.,
         #   S => Optional(A) B Optional(C)
-        #   Optional(A) => Null    --> remove
+        #   Optional(A) => NULL    --> remove
         #   Optional(A) => A
-        #   Optional(C) => Null
+        #   Optional(C) => NULL
         #   Optional(C) => C       --> remove
         # becomes:
         #   S => Optional(A) B Optional(C)
@@ -981,19 +982,19 @@ class GrammarImpl(object):
                 if len(new_rhs) > 0:
                     new_prods.add(Production.factory(prod.lhs, new_rhs))
                 else:
-                    # RHS is all Null, e.g., And(Optiona1 + Zero2) -> Null
-                    new_prod = Production.factory(prod.lhs, [Null])
+                    # RHS is all NULL, e.g., And(Optiona1 + Zero2) -> Null
+                    new_prod = Production.factory(prod.lhs, [NULL])
                     if new_prod not in null_productions:
                         new_prods.add(new_prod)
                         # redo = True
         self.productions.update(new_prods)
 
         # Known bug: commenting out the following code will not parse
-        # deeper Null elements such as:
-        # And(Optiona1 + Zero2 + Zero3) -> Null
+        # deeper NULL elements such as:
+        # And(Optiona1 + Zero2 + Zero3) -> NULL
         #
         # But it will significantly increase parsing speed by reducing
-        # grammar sizes. Developers are enouraged to write Null elements
+        # grammar sizes. Developers are enouraged to write NULL elements
         # explicitly (utilizing Optional/ZeroOrMore etc).
         #
         # if redo:
@@ -1063,40 +1064,55 @@ class GrammarImpl(object):
         return productions
 
     def _set_element_name_recursively(self, element):
+        name_is_set = self._set_element_variable_name(element)
         if isinstance(element, GrammarExpression):
             for e in element.exprs:
-                self._set_element_name_recursively(e)
+                if not e.name_is_set:
+                    self._set_element_name_recursively(e)
         elif isinstance(element, GrammarElementEnhance):
             self._set_element_name_recursively(element.expr)
         # call this function *after* recursively visiting children elements
         # so that parent element without a name can "borrow" one from its child
-        self._set_element_name(element)
+        if not name_is_set:
+            self._set_element_canonical_name(element)
 
-    def _set_element_name(self, element):
+    def _set_element_variable_name(self, element):
         """
-        Set the name field of `element`, if not set yet
+        Set the variable_name field of `element`
 
         :param GrammarElement element: a grammar element
-        :return: None
+        :return bool: True if found else False
         """
         ename = self._get_variable_name(element)
         if ename is not None:
             element.variable_name = ename
+            element.name_is_set = True
+            return True
         else:
-            # try our best to give a name by borrowing names from children
-            if isinstance(element, GrammarElementEnhance):
-                # if we have a production like Optional(quantifier)
-                # we hope to give a name of "Optional(quantifier)"
-                expr_name = str(element.expr)
-            elif isinstance(element, GrammarExpression):
-                expr_name = ", ".join([str(e) for e in element.exprs])
-            elif isinstance(element, GrammarElement):
-                expr_name = element.default_name()
-            else:
-                raise GrammarException("unrecognized element: " + str(element))
+            return False
 
-            element.canonical_name = element.__class__.__name__ + \
-                "(" + expr_name + ")"
+    def _set_element_canonical_name(self, element):
+        """
+        Set the canonical name field of `element`, if not set yet
+
+        :param GrammarElement element: a grammar element
+        :return: None
+        """
+        # try our best to give a name by borrowing names from children
+        if isinstance(element, GrammarElementEnhance):
+            # if we have a production like Optional(quantifier)
+            # we hope to give a name of "Optional(quantifier)"
+            expr_name = str(element.expr)
+        elif isinstance(element, GrammarExpression):
+            expr_name = ", ".join([str(e) for e in element.exprs])
+        elif isinstance(element, GrammarElement):
+            expr_name = element.default_name()
+        else:
+            raise GrammarException("unrecognized element: " + str(element))
+
+        element.canonical_name = element.__class__.__name__ + \
+            "(" + expr_name + ")"
+        element.name_is_set = True
 
     def build_leftcorner_table(self):
         """
@@ -1223,16 +1239,14 @@ class GrammarImpl(object):
             if prod.lhs is lhs:
                 yield prod
 
-    def filter_nonterminals_for_prediction(self):
-        """
-        Yield all nonterminal productions.
-
-        :return: a production generator
-        :rtype: generator(:class:`Production`)
-        """
-        for prod in self.productions:
-            if not prod.is_terminal:
-                yield prod
+    # def filter_nonterminals_for_prediction(self):
+    #     """ Yield all nonterminal productions.
+    #     :return: a production generator
+    #     :rtype: generator(:class:`Production`)
+    #     """
+    #     for prod in self.productions:
+    #         if not prod.is_terminal:
+    #             yield prod
 
 
 class Production(object):
@@ -1349,13 +1363,13 @@ class ElementEnhanceProduction(ElementProduction):
         assert isinstance(element, GrammarElementEnhance)
 
 
-NullProduction = ElementProduction(Null)
+NullProduction = ElementProduction(NULL)
 
 
 class TreeNode(object):
     """A tree structure to represent parser output.
-    `parent` should be a chart :class:`Edge` while `child`
-    in :func:`add_child` should be a :class:`TreeNode`.
+    ``parent`` should be a chart :class:`Edge` while ``children``
+    should be a :class:`TreeNode`.
     `lexicon` is the matched string if this node is a leaf node.
 
     :param Edge parent: an edge in Chart
@@ -1397,8 +1411,8 @@ class TreeNode(object):
     def is_leaf(self):
         return len(self.children) == 0
 
-    def add_child(self, child):
-        self.children.append(child)
+    # def add_child(self, child):
+    #     self.children.append(child)
 
     def __str__(self):
         return TreeNode.recursive_str(self)
@@ -1452,7 +1466,7 @@ class TreeNode(object):
         if not node.is_leaf():
             string += "\n"
             for child in node.children:
-                string += node.recursive_str(child, indent + 2)
+                string += node.recursive_str_verbose(child, indent + 2)
             string += " " * indent + ")\n"
         else:  # leaf
             string += " " + str(node.parent.prod.rhs[0]) + "<" + \
@@ -1650,12 +1664,11 @@ class Edge(object):
         :return: a new edge
         :rtype: :class:`Edge`
         """
-        if edge.start != self.end:
-            raise ValueError("Can't merge and forward dot: \n%s\n%s" %
-                             (self, edge))
-        if self.dot >= self.prod.rhs_len:
-            raise IndexError("Dot position (%d) way behind RHS (%s)" %
-                             (self.dot, self))
+        assert edge.start == self.end, \
+            "Can't merge and forward dot: \n%s\n%s" % (self, edge)
+
+        assert self.dot < self.prod.rhs_len, \
+            "Dot position (%d) way behind RHS (%s)" % (self.dot, self)
         return Edge(self.start, edge.end, self.prod, self.dot + 1)
 
     def is_complete(self):
@@ -1664,12 +1677,6 @@ class Edge(object):
         :rtype: bool
         """
         return self.prod.rhs_len == self.dot
-
-    def is_incomplete(self):
-        return not self.is_complete()
-
-    def is_active(self):
-        return self.is_incomplete()
 
     def __str__(self):
         return "[%d, %d] %s (%s) -> %s * %s" % (
@@ -1984,16 +1991,12 @@ class Chart(object):
     A 2D chart (list) to store graph edges. Edges can be accessed via:
     Chart.edges[start][end] and return value is a set of edges.
 
-    :param tokens: a list of input tokens, or chart size (int)
-    :type: list, int
+    :param int size: chart size, normally ``len(tokens) + 1``.
     """
 
-    def __init__(self, tokens):
+    def __init__(self, size):
         self._init_pointers()
-        if type(tokens) is int:
-            self.size = tokens
-        else:
-            self.size = len(tokens) + 1
+        self.size = size
         self.edges = [[set() for _ in xrange(self.size)]
                       for _ in xrange(self.size)]
         # current parsing progress; when chart_i = m, it means we are
@@ -2061,10 +2064,10 @@ class Chart(object):
                 edges.append(edge)
         return edges
 
-    def filter_edges_for_completion(self, end=None, rhs_after_dot=None):
+    def filter_edges_for_completion(self, end, rhs_after_dot):
         """
-        Find all edges with matching `end` position and RHS nonterminal
-        directly after the dot as `rhs_after_dot`. For instance, both edges::
+        Find all edges with matching ``end`` position and RHS nonterminal
+        directly after the dot as ``rhs_after_dot``. For instance, both edges::
 
             [1, 1] NNS ->  * NNS CC NNS
             [1, 1] NP ->  * NNS
@@ -2077,34 +2080,34 @@ class Chart(object):
         # first put it on agenda, then add to chart (instead of first adding
         # to chart, then to agenda)
         edges = []
-        if end is not None and rhs_after_dot is not None:
-            # edges = [edge
-            # for i in xrange(min(self.size, end+1))
-            #           for edge in self.edges[i][end]
-            #             if edge.get_rhs_after_dot() is rhs_after_dot
-            #         ]
-            for i in xrange(min(self.size, end + 1)):
-                for edge in self.edges[i][end]:
-                    # replaced "==" here with "is" and got 2x speed up
-                    # if edge.get_rhs_after_dot() is rhs_after_dot:
-                    # avoiding the function call get_rhs_after_dot()
-                    # is 15% faster
-                    if edge.prod.rhs_len != edge.dot and \
-                       edge.prod.rhs[edge.dot] is rhs_after_dot:
-                        # can't yield here because Zero/Optional elements
-                        # might be # re-added to edges[i][end], then list
-                        # size changed exception yield edge
-                        edges.append(edge)
-        elif end is None and rhs_after_dot:
-            for i in xrange(self.size):
-                for j in xrange(self.size):
-                    for edge in self.edges[i][j]:
-                        # replaced "==" here with "is" and got 2x speed up
-                        # if edge.get_rhs_after_dot() is rhs_after_dot:
-                        if edge.prod.rhs_len != edge.dot and \
-                           edge.prod.rhs[edge.dot] is rhs_after_dot:
-                            # yield edge
-                            edges.append(edge)
+        # if end is not None and rhs_after_dot is not None:
+        # # edges = [edge
+        # # for i in xrange(min(self.size, end+1))
+        # #           for edge in self.edges[i][end]
+        # #             if edge.get_rhs_after_dot() is rhs_after_dot
+        # #         ]
+        for i in xrange(min(self.size, end + 1)):
+            for edge in self.edges[i][end]:
+                # replaced "==" here with "is" and got 2x speed up
+                # if edge.get_rhs_after_dot() is rhs_after_dot:
+                # avoiding the function call get_rhs_after_dot()
+                # is 15% faster
+                if edge.prod.rhs_len != edge.dot and \
+                   edge.prod.rhs[edge.dot] is rhs_after_dot:
+                    # can't yield here because Zero/Optional elements
+                    # might be # re-added to edges[i][end], then list
+                    # size changed exception yield edge
+                    edges.append(edge)
+        # elif end is None and rhs_after_dot:
+        #     for i in xrange(self.size):
+        #         for j in xrange(self.size):
+        #             for edge in self.edges[i][j]:
+        #                 # replaced "==" here with "is" and got 2x speed up
+        #                 # if edge.get_rhs_after_dot() is rhs_after_dot:
+        #                 if edge.prod.rhs_len != edge.dot and \
+        #                    edge.prod.rhs[edge.dot] is rhs_after_dot:
+        #                     # yield edge
+        #                     edges.append(edge)
         return edges
 
     def filter_completed_edges(self, start, lhs):
@@ -2183,7 +2186,7 @@ class Chart(object):
         :return: a tuple of (best tree, its parse result)
         :rtype: tuple(:class:`TreeNode`, :class:`ParseResult`)
         """
-        if self.size <= 1:
+        if len(trees) == 0:
             raise ParseException("No parse tree found")
         else:
             best_tree = sorted([(t.size(), t) for i, t in trees])[0][1]
@@ -2192,10 +2195,9 @@ class Chart(object):
 
     def _trees(self, parent_edge, tokens=None):
         trees = []
+        lexicon = ""
         if tokens is not None:
             lexicon = " ".join(tokens[parent_edge.start: parent_edge.end])
-        else:
-            lexicon = ""
         if parent_edge in self.edge2backpointers:
             for children_edges in self.edge2backpointers.get(parent_edge):
                 child_trees = [self._trees(child_edge, tokens) for
@@ -2216,10 +2218,9 @@ class Chart(object):
         nodes
         """
         trees = []
+        lexicon = ""
         if tokens is not None:
             lexicon = " ".join(tokens[parent_edge.start: parent_edge.end])
-        else:
-            lexicon = ""
         if parent_edge in self.edge2backpointers:
             # to improve efficiency, we can use a priority queue
             # for self.edge2backpointers
@@ -2527,6 +2528,7 @@ TopDownStrategy = ParsingStrategy([
     TopDownPredictRule(),
     CompleteRule()
 ])
+"""Top-down parsing strategy"""
 
 
 BottomUpStrategy = ParsingStrategy([
@@ -2536,6 +2538,7 @@ BottomUpStrategy = ParsingStrategy([
     BottomUpPredictRule(),
     CompleteRule()
 ])
+"""Bottom-up parsing strategy"""
 
 
 LeftCornerStrategy = ParsingStrategy([
@@ -2543,6 +2546,7 @@ LeftCornerStrategy = ParsingStrategy([
     LeftCornerPredictScanRule(),
     CompleteRule()
 ])
+"""Top-down left corner parsing strategy to speed up top-down strategy"""
 
 
 class RobustParser(object):
@@ -2552,7 +2556,7 @@ class RobustParser(object):
     :param grammar: user defined grammar, a :class:`GrammarImpl` type.
     :param ParsingStrategy strategy: top-down or bottom-up parsing
     """
-    def __init__(self, grammar, strategy=TopDownStrategy):
+    def __init__(self, grammar, strategy=LeftCornerStrategy):
         self.logger = logging.getLogger(__name__)
         self.goal = grammar.goal
         self.grammar = grammar
@@ -2811,24 +2815,6 @@ class RobustParser(object):
             self.logger.debug("Agenda total: %d" % agenda.total)
         return chart, new_tokens
 
-    def parse_file(self, fname, all_trees=False, best_parse=False):
-        """
-        Parse a file line by line, with each line a sentence, then print.
-
-        :param str fname: the file name
-        :param bool all_trees: whether to return all parse trees or only the
-            best one
-        :param bool best_parse: whether to return the best parse
-        """
-        with open(fname) as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("#BREAK"):
-                    break
-                if len(line) == 0 or line.startswith("#"):
-                    continue
-                self.print_parse(line, all_trees, best_parse)
-
     def parse_string(self, string):
         """
         alias of :func:`parse`.
@@ -2836,14 +2822,11 @@ class RobustParser(object):
         chart, tokens = self.parse_to_chart(string)
         try:
             trees = list(chart.trees(tokens, all_trees=False, goal=self.goal))
-            if len(trees) == 0:
-                raise ParseException("No parse trees found")
+            best_tree, best_parse = chart.best_tree_with_parse_result(trees)
+            return best_tree, best_parse
         except ParseException:
             print >> sys.stderr, "can't parse:", string
             return None, None
-
-        best_tree, best_parse = chart.best_tree_with_parse_result(trees)
-        return best_tree, best_parse
 
     def parse(self, string):
         """

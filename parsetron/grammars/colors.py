@@ -240,5 +240,9 @@ class ColorsGrammar(Grammar):
             # assert r.rgb == rgb, "result: %s\nrgb: %s" % (r, rgb)
             # FIXME: on "green yellow" it only parses "green"
 
-if __name__ == '__main__':
+
+def test():
+    """
+    Simple test method to be called by pytest
+    """
     ColorsGrammar.test()

@@ -20,6 +20,7 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr *.egg-info
+	rm -rf htmlcov/
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -38,8 +39,8 @@ test-all:
 coverage:
 	coverage run --source parsetron setup.py test
 	coverage report -m
-	coverage html
-	open htmlcov/index.html
+	# coverage html
+	# open htmlcov/index.html
 
 docs:
 	# rm -f docs/parsetron.rst

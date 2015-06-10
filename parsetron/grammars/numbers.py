@@ -1,6 +1,5 @@
 from parsetron import *
 
-
 __author__ = 'Xuchen Yao'
 
 
@@ -99,5 +98,8 @@ class NumbersGrammar(Grammar):
             assert r.get() == expect, "%s <- %s" % (str(r.get()), sent)
 
 
-if __name__ == '__main__':
+def test():
+    """
+    Simple test method to be called by pytest
+    """
     NumbersGrammar.test()

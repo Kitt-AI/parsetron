@@ -112,5 +112,8 @@ class ColoredLightGrammar(Grammar):
         print "per parse: %.2f ms" % (elapsed*1000/len(sents))
 
 
-if __name__ == '__main__':
+def test():
+    """
+    Simple test method to be called by pytest
+    """
     ColoredLightGrammar.test()

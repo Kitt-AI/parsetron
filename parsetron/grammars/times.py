@@ -39,5 +39,11 @@ class TimesGrammar(Grammar):
             assert r.get() == expect, "%s <- %s" % (str(r.get()), sent)
 
 
-if __name__ == '__main__':
+def test():
+    """
+    Simple test method to be called by pytest
+    """
     TimesGrammar.test()
+
+if __name__ == '__main__':
+    test()

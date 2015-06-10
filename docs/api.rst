@@ -50,6 +50,9 @@ Class Summary
     TopDownScanRule
     CompleteRule
     ParsingStrategy
+    TopDownStrategy
+    BottomUpStrategy
+    LeftCornerStrategy
     RobustParser
 
 Class API Details
