@@ -1,6 +1,6 @@
 from parsetron import *
-from times import TimesGrammar
-from colors import ColorsGrammar
+from parsetron.grammars.times import TimesGrammar
+from parsetron.grammars.colors import ColorsGrammar
 
 __author__ = 'Xuchen Yao'
 
@@ -104,12 +104,12 @@ class ColoredLightGrammar(Grammar):
             s1 = time.time()
             assert expect == parser.print_parse(sent), sent
             s2 = time.time()
-            print "parse time: %.2f ms" % ((s2-s1)*1000)
-            print
+            print("parse time: %.2f ms" % ((s2-s1)*1000))
+            print()
         e = time.time()
         elapsed = e - s
-        print "total time: %.2f s" % (elapsed)
-        print "per parse: %.2f ms" % (elapsed*1000/len(sents))
+        print("total time: %.2f s" % (elapsed))
+        print("per parse: %.2f ms" % (elapsed*1000/len(sents)))
 
 
 def test():

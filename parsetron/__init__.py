@@ -1,4 +1,4 @@
-import parsetron
+from . import parsetron
 from parsetron import *
 
 __author__ = 'KITT.AI'

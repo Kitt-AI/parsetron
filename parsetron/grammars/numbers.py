@@ -1,5 +1,4 @@
 from parsetron import *
-
 __author__ = 'Xuchen Yao'
 
 
@@ -93,8 +92,8 @@ class NumbersGrammar(Grammar):
         parser = RobustParser(NumbersGrammar())
         for sent, expect in NumbersGrammar.sents:
             t, r = parser.parse(sent)
-            # print t
-            # print r
+            # print(t)
+            # print(r)
             assert r.get() == expect, "%s <- %s" % (str(r.get()), sent)
 
 
@@ -103,3 +102,7 @@ def test():
     Simple test method to be called by pytest
     """
     NumbersGrammar.test()
+
+
+if __name__ == "__main__":
+    test()

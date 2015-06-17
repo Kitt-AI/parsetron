@@ -39,3 +39,10 @@ Development
 
 Features
 --------
+
+
+TODO
+----
+
+[ ] Python 3 compatible
+[ ] Unicode support

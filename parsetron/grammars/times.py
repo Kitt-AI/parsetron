@@ -1,5 +1,5 @@
 from parsetron import *
-from numbers import replaced_string, NumbersGrammar
+from parsetron.grammars.numbers import replaced_string, NumbersGrammar
 
 __author__ = 'Xuchen Yao'
 
@@ -35,7 +35,7 @@ class TimesGrammar(Grammar):
         parser = RobustParser(g)
         for sent, expect in TimesGrammar.sents:
             _, r = parser.parse(sent)
-            print r
+            print(r)
             assert r.get() == expect, "%s <- %s" % (str(r.get()), sent)
 
 

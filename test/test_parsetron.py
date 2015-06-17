@@ -246,7 +246,7 @@ class TestOr(object):
         assert len(a.exprs) == 5
 
         with pytest.raises(GrammarException):
-            print a | 3.3
+            print(a | 3.3)
 
 
 class TestStr(object):
@@ -282,7 +282,7 @@ class TestGrammar(object):
         light = TestGrammar.LightGrammar()
         repr(light)
         assert light.name == "LightGrammar"
-        print light
+        print(light)
         parser = RobustParser(light)
         parser_bu = RobustParser(light, BottomUpStrategy)
         # TODO: this semantics is NOT tesing "grammar"
@@ -351,7 +351,7 @@ class TestParser(object):
         # test result
         assert r.times == 1
         assert r.color == (255, 0, 0)
-        print repr(r)  # test __repr__()
+        print(repr(r))  # test __repr__()
         assert 'quickly' in r.values()
         assert 'quick' in r.keys()
         del r['quick']
@@ -426,7 +426,7 @@ class TestParser(object):
         trees = list(chart.trees(tokens,
                                  all_trees=True,
                                  goal=FullGrammar.GOAL))
-        print chart  # test chart __str__()
+        print(chart)  # test chart __str__()
         assert len(trees) == 4
 
 
@@ -500,13 +500,13 @@ class TestDocGrammar(object):
         ]
         for sent in sents:
             tree, result = parser.parse_string(sent)
-            print '"%s"' % sent
-            print "parse tree:"
-            print tree
-            print "parse result:"
-            print result
+            print('"%s"' % sent)
+            print("parse tree:")
+            print(tree)
+            print("parse result:")
+            print(result)
             assert type(result.one_parse) is list
-            print
+            print()
 
 
 def test_find_word_boundaries():

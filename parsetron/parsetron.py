@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import re
 import sys
 import itertools
@@ -67,10 +71,11 @@ class MetaGrammar(type):
 
     def __new__(typ, name, bases, dct):
         if '__metaclass__' not in dct:
-            # If user do::
+            # If user does::
             # >>> from parsetron import *
             # Then __new__() will be called with __metaclass__ in dct
-            # If use constructs a real grammar, then __metaclass__ isn't in dct
+            # If user constructs a real grammar, then __metaclass__ isn't
+            # in dct
             if "_grammar_" in dct:
                 raise GrammarException("_grammar_ is reserved.")
             if "GOAL" not in dct:
@@ -610,7 +615,7 @@ class GrammarExpression(GrammarElement):
         elif isinstance(exprs, (list, tuple)):
             # if sequence of strings provided, wrap with String
             if all(isinstance(expr, basestring) for expr in exprs):
-                exprs = map(String, exprs)
+                exprs = list(map(String, exprs))
             self.exprs = exprs
         else:
             try:
@@ -2047,7 +2052,7 @@ class Chart(object):
                 self.edge2backpointers[edge].add(new_child_edges)
                 # sanity check, should all pass
                 # if len(new_child_edges) != edge.dot:
-                #   print "missing children"
+                #   print("missing children")
 
         return ret
 
@@ -2169,14 +2174,14 @@ class Chart(object):
                     if goal is not None and root.prod.lhs != goal:
                         continue
                     i += 1
-                    # print "root", i
+                    # print("root", i)
                     if all_trees:
                         for tree in self._trees(root, tokens):
                             yield (i, tree)
                     else:
                         for tree in self._most_compact_trees(root, tokens):
                             yield (i, tree)
-                            # print "number of complete root nodes:", i
+                            # print("number of complete root nodes:", i)
 
     def best_tree_with_parse_result(self, trees):
         """
@@ -2473,9 +2478,9 @@ class CompleteRule(ChartRule):
         for filtered_edge in chart.filter_edges_for_completion(
                 end=edge.start, rhs_after_dot=edge.prod.lhs):
 
-            # print "filtered edge", str(filtered_edge)
+            # print("filtered edge", str(filtered_edge))
             moved_edge = filtered_edge.merge_and_forward_dot(edge)
-            # print "moved edge", str(moved_edge)
+            # print("moved edge", str(moved_edge))
             if edge != moved_edge:
                 if chart.add_edge(moved_edge, filtered_edge, edge):
                     agenda.append(moved_edge)
@@ -2671,18 +2676,18 @@ class RobustParser(object):
                 token, chart)
             if len(parsed_tokens) > 0:
                 accepted_tokens.extend(parsed_tokens)
-            print "tokens so far:", " ".join(tokens[0:i + 1])
-            print "parsed tokens:", " ".join(accepted_tokens)
-            print "parse tree so far:"
+            print("tokens so far:", " ".join(tokens[0:i + 1]))
+            print("parsed tokens:", " ".join(accepted_tokens))
+            print("parse tree so far:")
             try:
                 trees = list(chart.trees(accepted_tokens,
                                          all_trees=False, goal=None))
                 best_tree, best_parse = chart.best_tree_with_parse_result(
                     trees)
-                print best_tree
+                print(best_tree)
             except ParseException:
                 pass
-            print
+            print()
 
     def parse_multi_token_skip_reuse_chart(self, sent):
         """
@@ -2825,7 +2830,7 @@ class RobustParser(object):
             best_tree, best_parse = chart.best_tree_with_parse_result(trees)
             return best_tree, best_parse
         except ParseException:
-            print >> sys.stderr, "can't parse:", string
+            print("can't parse:", string, file=sys.stderr)
             return None, None
 
     def parse(self, string):
@@ -2855,7 +2860,7 @@ class RobustParser(object):
             (for test purposes)
         :return: True if there is a parse else False
         """
-        print string
+        print(string)
         try:
             chart, tokens = self.parse_to_chart(string)
             trees = list(chart.trees(tokens, all_trees,
@@ -2863,29 +2868,29 @@ class RobustParser(object):
             if len(trees) == 0:
                 raise ParseException("No parse trees found")
         except ParseException as e:
-            print >> sys.stderr, "can't parse:", string
+            print("can't parse:", string, file=sys.stderr)
             return False
 
         if not best_parse:
             for i, tree in trees:
-                print i
+                print(i)
                 if print_json:
-                    print json.dumps(tree.dict_for_js(), indent=2)
+                    print(json.dumps(tree.dict_for_js(), indent=2))
                 else:
-                    print tree
-                print "size:", tree.size()
-                print
-            print "total trees:", len(trees)
+                    print(tree)
+                print("size:", tree.size())
+                print()
+            print("total trees:", len(trees))
         else:
             best_tree, best_parse = chart.best_tree_with_parse_result(trees)
-            print "best tree:"
+            print("best tree:")
             if print_json:
-                print json.dumps(best_tree.dict_for_js(), indent=2)
+                print(json.dumps(best_tree.dict_for_js(), indent=2))
             else:
-                print best_tree
-                print best_parse
-            print "total trees:", len(trees)
-        print
+                print(best_tree)
+                print(best_parse)
+            print("total trees:", len(trees))
+        print()
 
         if strict_match:
             if string == " ".join(tokens):
