@@ -2242,8 +2242,8 @@ class Chart(object):
                                for child_edge in children_edges]
                 child_trees_list.append(child_trees)
             # we select from whoever's children are the smallest
-            cc = sorted([(sum([t[0].size() for t in child_trees]),
-                          child_trees) for child_trees in child_trees_list])
+            cc = sorted([(sum([t[0].size() for t in c_trees]),
+                          c_trees) for c_trees in child_trees_list])
             child_trees = cc[0][1]
             for t in itertools.product(*child_trees):
                 trees.append(TreeNode(parent_edge, t, lexicon))
@@ -2867,7 +2867,7 @@ class RobustParser(object):
                                      goal=self.goal if only_goal else None))
             if len(trees) == 0:
                 raise ParseException("No parse trees found")
-        except ParseException as e:
+        except ParseException:
             print("can't parse:", string, file=sys.stderr)
             return False
 

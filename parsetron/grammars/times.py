@@ -1,7 +1,8 @@
-from parsetron import *
+from parsetron import Grammar, Or, Set, RobustParser
 from parsetron.grammars.numbers import replaced_string, NumbersGrammar
 
 __author__ = 'Xuchen Yao'
+
 
 class TimesGrammar(Grammar):
 

@@ -36,7 +36,7 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
+        # import here, cause outside the eggs aren't loaded
         import pytest
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
@@ -51,10 +51,14 @@ setup(
     url='https://github.com/Kitt-AI/parsetron',
     packages=[
         'parsetron',
+        'parsetron.grammars',
     ],
     package_dir={'parsetron': 'parsetron'},
     include_package_data=True,
     install_requires=[
+    ],
+    setup_requires=[
+        "flake8"
     ],
     license='Apache',
     zip_safe=False,
@@ -65,12 +69,9 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
     tests_require=['pytest'],
-    cmdclass = {'test': PyTest},
+    cmdclass={'test': PyTest},
 )

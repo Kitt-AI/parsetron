@@ -1,4 +1,6 @@
-from parsetron import *
+from parsetron import String, Grammar, Regex, Or, Optional, ZeroOrMore, \
+    OneOrMore, RobustParser
+
 __author__ = 'Xuchen Yao'
 
 
@@ -10,7 +12,7 @@ def result_sum(r):
     # result could either be a list or a single item
     try:
         r.set(sum(r.get()))
-    except TypeError: # not a list
+    except TypeError:  # not a list
         r.set(r.get())
 
 

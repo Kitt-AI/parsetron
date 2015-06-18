@@ -13,9 +13,11 @@ Parsetron, a Robust Semantic Parser
 
    Parsetron is a robust incremental natural language parser utilizing semantic
    grammars for small focused domains. It is mainly used to convert natural
-   language command to executable API calls (e.g., *"blink my light twice"*).
-   Parsetron is written in pure Python (2.7), portable (a single ``parsetron.py``
-   file), and can be used in conjunction with a speech recognizer.
+   language command to executable API calls (e.g.,
+   *"set my bedroom light to red"* --> ``set_light('bedroom', [255, 0, 0])``).
+   Parsetron is written in pure Python (2.7), portable (a single
+   ``parsetron.py`` file), and can be used in conjunction with a speech
+   recognizer.
 
 :Author: Xuchen Yao from `KITT.AI <http://kitt.ai>`_
 

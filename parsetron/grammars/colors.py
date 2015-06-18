@@ -1,4 +1,4 @@
-from parsetron import *
+from parsetron import Grammar, Set, RobustParser
 
 __author__ = 'Xuchen Yao'
 

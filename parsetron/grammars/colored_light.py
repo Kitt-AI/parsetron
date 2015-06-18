@@ -1,4 +1,5 @@
-from parsetron import *
+from parsetron import Set, Grammar, Optional, ZeroOrMore, OneOrMore, \
+    RobustParser
 from parsetron.grammars.times import TimesGrammar
 from parsetron.grammars.colors import ColorsGrammar
 
