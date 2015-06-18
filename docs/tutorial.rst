@@ -41,7 +41,7 @@ The difficult job here is to extract key information from the natural language
 command to help developers call certain APIs to control a smart device.
 Conventional approach is writing a bunch of rules, such as regular expressions,
 which are difficult to maintain, read, and expand. Computational linguists opt
-for writing `Context Free Grammars <http://en.wikipedia.org/wiki/Context-free_grammar>`_.
+for writing `Context Free Grammars <https://en.wikipedia.org/wiki/Context-free_grammar>`_.
 But the learning curve is high and the parser output -- usually a constituency tree
 or a dependency relation -- is not directly helpful in our tasks.
 
@@ -125,7 +125,8 @@ If PyPy is warmed up, the parsing speed is about 3x that of CPython.
 At the current stage Parsetron doesn't support Python 3 yet.
 
 In the following we provide a simple example of controlling your smart lights
-with natural language instructions.
+with natural language instructions. Corresponding code of this tutorial is hosted on
+`Github <https://github.com/Kitt-AI/parsetron-tutorial>`_.
 
 A Light Grammar
 ===============
@@ -304,7 +305,7 @@ call its :func:`parsetron.RobustParser.parse` function:
         print "parse tree:"
         print tree
         print "parse result:"
-        print result.pretty_str()
+        print result
         print
 
 And here's the output:
@@ -322,8 +323,27 @@ And here's the output:
     )
 
     parse result:
-    { 'GOAL': [['set', 'top', 'red']],
-      'one_parse': [ {'action': 'set', 'one_parse': ['set', 'top', 'red'], 'color': 'red', 'light': 'top'}]}
+    {
+      "one_parse": [
+        {
+          "action": "set",
+          "one_parse": [
+            "set",
+            "top",
+            "red"
+          ],
+          "color": "red",
+          "light": "top"
+        }
+      ],
+      "GOAL": [
+        [
+          "set",
+          "top",
+          "red"
+        ]
+      ]
+    }
 
     "set my top light to red and change middle light to yellow"
     parse tree:
@@ -341,9 +361,42 @@ And here's the output:
     )
 
     parse result:
-    { 'GOAL': [['set', 'top', 'red'], ['change', 'middle', 'yellow']],
-      'one_parse': [ {'action': 'set', 'one_parse': ['set', 'top', 'red'], 'color': 'red', 'light': 'top'},
-                     {'action': 'change', 'one_parse': ['change', 'middle', 'yellow'], 'color': 'yellow', 'light': 'middle'}]}
+    {
+      "one_parse": [
+        {
+          "action": "set",
+          "one_parse": [
+            "set",
+            "top",
+            "red"
+          ],
+          "color": "red",
+          "light": "top"
+        },
+        {
+          "action": "change",
+          "one_parse": [
+            "change",
+            "middle",
+            "yellow"
+          ],
+          "color": "yellow",
+          "light": "middle"
+        }
+      ],
+      "GOAL": [
+        [
+          "set",
+          "top",
+          "red"
+        ],
+        [
+          "change",
+          "middle",
+          "yellow"
+        ]
+      ]
+    }
 
     "set my top light to red and change middle light to yellow and flash bottom light twice in blue"
     parse tree:
@@ -363,7 +416,7 @@ And here's the output:
         (light "bottom")
         (Optional(times)
           (times
-            (Set(Set(three times|twice|once)) "twice")
+            (Set(three times|twice|once) "twice")
           )
         )
         (color "blue")
@@ -371,13 +424,62 @@ And here's the output:
     )
 
     parse result:
-    { 'GOAL': [ ['set', 'top', 'red'],
-                ['change', 'middle', 'yellow'],
-                ['flash', 'bottom', 'twice', 'blue']],
-      'one_parse': [ {'action': 'set', 'one_parse': ['set', 'top', 'red'], 'color': 'red', 'light': 'top'},
-                     {'action': 'change', 'one_parse': ['change', 'middle', 'yellow'], 'color': 'yellow', 'light': 'middle'},
-                     {'one_parse': ['flash', 'bottom', 'twice', 'blue'], 'color': 'blue', 'light': 'bottom', 'Optional(times)': 'twice', 'times': 'twice', 'Set(Set(three times|twice|once))': 'twice', 'action': 'flash'}]}
-
+    {
+      "one_parse": [
+        {
+          "action": "set",
+          "one_parse": [
+            "set",
+            "top",
+            "red"
+          ],
+          "color": "red",
+          "light": "top"
+        },
+        {
+          "action": "change",
+          "one_parse": [
+            "change",
+            "middle",
+            "yellow"
+          ],
+          "color": "yellow",
+          "light": "middle"
+        },
+        {
+          "one_parse": [
+            "flash",
+            "bottom",
+            "twice",
+            "blue"
+          ],
+          "color": "blue",
+          "Set(three times|twice|once)": "twice",
+          "Optional(times)": "twice",
+          "times": "twice",
+          "light": "bottom",
+          "action": "flash"
+        }
+      ],
+      "GOAL": [
+        [
+          "set",
+          "top",
+          "red"
+        ],
+        [
+          "change",
+          "middle",
+          "yellow"
+        ],
+        [
+          "flash",
+          "bottom",
+          "twice",
+          "blue"
+        ]
+      ]
+    }
 
 The :func:`parsetron.RobustParser.parse` function returns a tuple of
 (``parse tree``, ``parse result``):
@@ -471,6 +573,10 @@ which we do not specify here. But more information can be found in
 `core concepts <http://www.developers.meethue.com/documentation/core-concepts>`_
 of Hue.
 
+Calling external APIs is beyond scope of this tutorial. But we have a simple
+working system called `firefly <https://github.com/Kitt-AI/firefly>`_ for your
+reference.
+
 Advanced Usage
 ==============
 
@@ -485,3 +591,6 @@ doing much more than that, for instance:
 
 In the next page we introduce the :func:`parsetron.GrammarElement.set_result_action`
 function to post process parse results.
+
+Corresponding code of this tutorial is hosted on
+`Github <https://github.com/Kitt-AI/parsetron-tutorial>`_.

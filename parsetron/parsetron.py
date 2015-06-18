@@ -16,8 +16,11 @@ __doc__ = \
     **parsetron.py**, a semantic parser written in pure Python.
     """
 
+__title__ = 'parsetron'
 __version__ = "0.1.0"
 __author__ = 'Xuchen Yao'
+__license__ = 'Apache 2.0'
+
 
 PY_3 = sys.version.startswith('3')
 if PY_3:

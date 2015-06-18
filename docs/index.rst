@@ -27,6 +27,7 @@ Table of Contents
    :maxdepth: 3
 
    tutorial
+   advanced
    api
 
 Introduction

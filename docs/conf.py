@@ -15,6 +15,8 @@
 import sys
 import os
 import shlex
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../parsetron'))
 import parsetron
 
 THEME_CLOUD = 0
@@ -105,7 +107,7 @@ elif user_theme == THEME_BOOTSTRAP:
         'bootstrap_version': '3',
 
         # Show "theme preview" button in header navbar. Defaults to false.
-        'theme_preview': True,
+        'theme_preview': False,
 
         # Set the Size of Heading text. Defaults to None
         # 'h1_size': '3.0em',
@@ -121,7 +123,6 @@ elif user_theme == THEME_BOOTSTRAP:
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('../parsetron'))
 
 # -- General configuration ------------------------------------------------
 

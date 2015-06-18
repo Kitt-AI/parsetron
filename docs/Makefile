@@ -3,7 +3,6 @@
 
 # usually we'd change PYTHONPATH in conf.py, but sphinx-autosummary
 # didn't seem to respect that...
-PYTHONPATH := ../parsetron:${PYTHONPATH}
 
 # You can set these variables from the command line.
 SPHINXOPTS    =

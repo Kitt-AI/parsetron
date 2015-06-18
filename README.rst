@@ -11,7 +11,7 @@ Parsetron -  A natural language semantic parser
 .. image:: https://pypip.in/d/parsetron/badge.png
     :target: https://pypi.python.org/pypi/parsetron
 
-.. image:: https://readthedocs.org/projects/parsetron/badge/
+.. image:: https://readthedocs.org/projects/parsetron/badge/?version=latest
     :alt: Documentation Status
     :scale: 100%
     :target: https://readthedocs.org/projects/parsetron/
