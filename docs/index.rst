@@ -26,7 +26,7 @@ Table of Contents
 .. toctree::
    :maxdepth: 3
 
-   quickstart
+   tutorial
    api
 
 Introduction
@@ -53,7 +53,7 @@ https://github.com/whiteinge/eseth/blob/master/templates/layout.html#L151
 .. Quick Start
    ===========
 
-   :ref:`parsetron_quickstart`
+   :ref:`parsetron_tutorial`
 
 
    API docs

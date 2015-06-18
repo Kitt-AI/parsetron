@@ -5,8 +5,9 @@ Credits
 Development Lead
 ----------------
 
-* KITT.AI <kittdotai@gmail.com>
 * Xuchen Yao <xuchen@kitt.ai>
+
+Parsetron is inspired by `pyparsing <https://pyparsing.wikispaces.com/>`_.
 
 Contributors
 ------------

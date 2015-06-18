@@ -1,4 +1,4 @@
-.. _parsetron_quickstart:
+.. _parsetron_tutorial:
 
 ==================
 Parsetron Tutorial
@@ -18,8 +18,11 @@ Parsetron Tutorial
 .. role:: bg-warning
 .. role:: bg-danger
 
+What It is
+==========
+
 Parsetron is a semantic parser that converts natural language text into API calls.
-Typical usage scenarios include:
+Typical usage scenarios include for instance:
 
 * control your smart light with language, e.g.:
 
@@ -61,10 +64,53 @@ Parsetron has the following properties:
 
 It understands language per definition of a semantic grammar.
 
+How it works
+============
+
+Parsetron is a
+`Chart Parser <https://en.wikipedia.org/wiki/Chart_parser>`_ for
+`Context Free Grammars <https://en.wikipedia.org/wiki/Context-free_grammar>`_
+(CFGs).
+It works in the following way:
+
+1. Accept a grammar extended from :class:`parsetron.Grammar`, which must have a
+   ``GOAL`` defined (similar to the start symbol ``S`` in CFGs). The grammar
+   is defined in Python (so :text-warning:`no extra learning curve for
+   Python developers`!).
+2. Tokenize an input string by white spaces.
+3. Construct a :class:`parsetron.Chart` and parse with a default Left Corner
+   Top Down strategy.
+
+   * unknown words not defined in the grammar are automatically omitted.
+   * if single tokens are not recognized, parsetron also tries to recognize
+     phrases.
+
+4. Output a conventional linguistic tree, and a :class:`parsetron.ParseResult`
+   for easier interpretation.
+
+   * results are ranked by the minimal tree sizes.
+   * in the future parsetron will provide probabilistic ranking.
+
+5. Run post processing on the parse result if any call-back functions are
+   defined via the :func:`parsetron.GrammarElement.set_result_action` function
+   in the grammar.
+
+Parsetron is inspired by `pyparsing <https://pyparsing.wikispaces.com/>`_,
+providing a lot of classes with the same intuitive names. pyparsing implements
+a top-down recursive parsing algorithm, which is good for parsing unambiguous
+input, but not for natural languages. Parsetron is specifically designed for
+parsing natural language instructions.
+
+
 Installation
 ============
 
-Parsetron comes with a single ``parsetron.py`` file, just download it from the
+Parsetron is available through PyPI::
+
+    pip install parsetron
+
+Alternatively, Parsetron comes as a single ``parsetron.py`` file.
+Just download it from the
 `repository <https://github.com/Kitt-AI/parsetron>`_ and put the file under
 your ``PYTHONPATH`` or current directory so that you can do::
 
@@ -74,8 +120,12 @@ or::
 
     from parsetron import *
 
-Parsetron can be run with either CPython or `PyPy <http://pypy.org>`_. If PyPy
-is warmed up, the parsing speed is about 3x that of CPython.
+Parsetron can be run with either CPython 2.7 or `PyPy <http://pypy.org>`_.
+If PyPy is warmed up, the parsing speed is about 3x that of CPython.
+At the current stage Parsetron doesn't support Python 3 yet.
+
+In the following we provide a simple example of controlling your smart lights
+with natural language instructions.
 
 A Light Grammar
 ===============
@@ -109,7 +159,7 @@ Now imagine we want to parse the following simple sentences:
 3. :text-success:`set my top light to red and change middle light to yellow
    and flash bottom light twice in blue`
 
-We can define a simple grammar like the following Python code:
+We can define a simple grammar in the following Python code:
 
 .. code-block:: python
    :linenos:
@@ -188,7 +238,7 @@ Here's a step-by-step explanation.
         GOAL = one_parse * (1, 3)
 
    meaning that a ``GOAL`` contains a ``one_parse`` one to three times. But then it is
-   **not flexible**: what if there's a forth coordination? So we simply change it to:
+   **not flexible**: what if there's a fourth coordination? So we simply change it to:
 
    .. code-block:: python
 
@@ -403,6 +453,7 @@ the hue:
 
 .. code-block:: python
 
+    # pip install phue
     from phue import Bridge
 
     b = Bridge('ip_of_your_bridge')
@@ -416,7 +467,7 @@ the hue:
 
 The above code calls an external function ``color2xy()`` to convert a string
 color name to its `XY values <http://www.developers.meethue.com/documentation/hue-xy-values>`_,
-which we do not specify here. But more information can be found in the
+which we do not specify here. But more information can be found in
 `core concepts <http://www.developers.meethue.com/documentation/core-concepts>`_
 of Hue.
 
