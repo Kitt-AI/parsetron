@@ -145,7 +145,7 @@ Corresponding code of this tutorial is hosted on
 
 .. note::
 
-    When is the call-back function called?
+    **When is the call-back function called?**
 
     The call-back function is called when we convert the (usually best) parse
     tree  (:class:`parsetron.TreeNode`) to parse result

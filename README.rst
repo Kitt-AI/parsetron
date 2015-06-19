@@ -77,7 +77,9 @@ Grammar Modules
 ---------------
 
 Parsetron supports modularized grammars: each grammar focuses on an individual
-small domain and can be imported via, for instance::
+small domain and can be imported via, for instance:
+
+.. code-block:: python
 
     from parsetron.grammars.colors import ColorsGrammar
 

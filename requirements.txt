@@ -9,3 +9,4 @@ sphinxjp.themes.basicstrap
 tox
 virtualenv
 coveralls
+sphinx_rtd_theme
