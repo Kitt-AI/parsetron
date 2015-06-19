@@ -12,6 +12,7 @@ help:
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
 	@echo "release - package and upload a release"
 	@echo "test-release - package and upload a release to the test server of PyPI"
+	@echo "test-install - pip install from the test server of PyPI"
 	@echo "sdist - package"
 
 clean: clean-build clean-pyc
@@ -59,10 +60,14 @@ release: clean
 	python setup.py bdist_wheel upload
 
 test-release: clean
-	python setup.py sdist upload -r test
-	python setup.py bdist_wheel upload -r test
+	# pypitest is defined in your ~/.pypirc file
+	python setup.py sdist upload -r pypitest
+	python setup.py bdist_wheel upload -r pypitest
+
+test-install:
+	pip install -i https://testpypi.python.org/pypi parsetron
 
 sdist: clean
 	python setup.py sdist
-	python setup.py bdist_wheel upload
+	python setup.py bdist_wheel
 	ls -l dist

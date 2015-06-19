@@ -2,6 +2,7 @@
 
 import os
 import sys
+from parsetron import parsetron
 
 try:
     from setuptools import setup
@@ -43,7 +44,7 @@ class PyTest(TestCommand):
 
 setup(
     name='parsetron',
-    version='0.1.0',
+    version=parsetron.__version__,
     description='A natural language semantic parser',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='KITT.AI',
