@@ -5,6 +5,8 @@ __author__ = 'KITT.AI'
 __version__ = parsetron.__version__
 
 __all__ = [
+    "strip_string",
+    "find_word_boundaries",
     "ParseException",
     "GrammarException",
     "MetaGrammar",

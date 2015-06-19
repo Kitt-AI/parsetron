@@ -1,4 +1,5 @@
 from parsetron import *  # NOQA
+import re
 import pytest
 
 __author__ = 'Xuchen Yao'
