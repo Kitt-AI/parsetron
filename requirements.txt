@@ -1,0 +1,12 @@
+wheel>=0.22
+coverage
+flake8
+pprofile
+pytest
+Sphinx
+sphinx-autobuild
+sphinxjp.themes.basicstrap
+tox
+virtualenv
+coveralls
+sphinx_rtd_theme
