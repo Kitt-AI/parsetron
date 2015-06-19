@@ -5,7 +5,7 @@ Parsetron -  A natural language semantic parser
 .. image:: https://badge.fury.io/py/parsetron.png
     :target: http://badge.fury.io/py/parsetron
 
-.. image:: https://travis-ci.org/Kitt-AI/parsetron.png?branch=master
+.. image:: https://travis-ci.org/Kitt-AI/parsetron.png?branch=develop
     :target: https://travis-ci.org/Kitt-AI/parsetron
 
 .. image:: https://pypip.in/d/parsetron/badge.png
@@ -26,10 +26,49 @@ Installation
 
 Parsetron is tested under Python 2.7 and Pypy. It doesn't support Python 3 yet.
 
+Quick Start
+-----------
+
+The following is a grammar that parses natural language instruction on lights::
+
+    from parsetron import Set, Regex, Optional, OneOrMore, Grammar, RobustParser
+
+    class LightGrammar(Grammar):
+
+        action = Set(['change', 'flash', 'set', 'blink'])
+        light = Set(['top', 'middle', 'bottom'])
+        color = Regex(r'(red|yellow|blue|orange|purple|...)')
+        times = Set(['once', 'twice', 'three times']) | Regex(r'\d+ times')
+        one_parse = action + light + Optional(times) + color
+        GOAL = OneOrMore(one_parse)
+
+        @staticmethod
+        def test():
+            parser = RobustParser((LightGrammar()))
+            sents = [
+                "set my top light to red",
+                "set my top light to red and change middle light to yellow",
+                "set my top light to red and change middle light to yellow and "
+                "flash bottom light twice in blue"
+            ]
+            for sent in sents:
+                tree, result = parser.parse(sent)
+                assert result.one_parse[0].color == 'red'
+
+                print '"%s"' % sent
+                print "parse tree:"
+                print tree
+                print "parse result:"
+                print result
+                print
+
+
 Dependencies
 ------------
 
 None. Parsetron is a single ``parsetron.py`` file.
+
+Parsetron is inspired by `pyparsing <https://pyparsing.wikispaces.com/>`_.
 
 Grammar Modules
 ---------------
@@ -43,7 +82,8 @@ small domain and can be imported via, for instance::
         color = ColorsGrammar.GOAL
 
 
-You are welcome to contribute your own grammar here. Send us a pull request!
+You are welcome to contribute your own grammar here (under
+``parsetron.grammars``). Send us a pull request!
 
 Development
 -----------
@@ -54,10 +94,6 @@ Development
        pip install -r requirements.txt
 
 3. then make your changes and follow the ``Makefile``.
-
-
-Features
---------
 
 
 TODO
