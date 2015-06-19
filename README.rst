@@ -30,7 +30,9 @@ Parsetron is tested under Python 2.7 and Pypy. It doesn't support Python 3 yet.
 Quick Start
 -----------
 
-The following is a grammar that parses natural language instruction on lights::
+The following is a grammar that parses natural language instruction on lights:
+
+.. code-block:: python
 
     from parsetron import Set, Regex, Optional, OneOrMore, Grammar, RobustParser
 
@@ -100,5 +102,5 @@ Development
 TODO
 ----
 
-[ ] Python 3 compatible
-[ ] Unicode support
+- [ ] Python 3 compatible
+- [ ] Unicode support
