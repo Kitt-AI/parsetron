@@ -36,6 +36,7 @@ Parsetron, a Robust Semantic Parser
 
 :Author: Xuchen Yao from `KITT.AI <http://kitt.ai>`_
 
+:Source: https://github.com/Kitt-AI/parsetron
 
 .. rubric:: Table of Contents
 
