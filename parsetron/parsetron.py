@@ -2833,7 +2833,7 @@ class RobustParser(object):
             best_tree, best_parse = chart.best_tree_with_parse_result(trees)
             return best_tree, best_parse
         except ParseException:
-            print("can't parse:", string, file=sys.stderr)
+            # print("can't parse:", string, file=sys.stderr)
             return None, None
 
     def parse(self, string):

@@ -6,6 +6,9 @@ Parsetron -  A natural language semantic parser
     .. image:: https://pypip.in/d/parsetron/badge.png
         :target: https://pypi.python.org/pypi/parsetron
 
+.. image:: https://badge.fury.io/py/parsetron.svg
+    :target: http://badge.fury.io/py/parsetron
+
 .. image:: https://travis-ci.org/Kitt-AI/parsetron.svg?branch=develop
     :target: https://travis-ci.org/Kitt-AI/parsetron
 

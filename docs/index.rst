@@ -36,6 +36,8 @@ Parsetron, a Robust Semantic Parser
 
 :Author: Xuchen Yao from `KITT.AI <http://kitt.ai>`_
 
+:Source: https://github.com/Kitt-AI/parsetron
+
 
 .. rubric:: Table of Contents
 
@@ -51,11 +53,9 @@ Parsetron, a Robust Semantic Parser
 
 .. Adding disqus and google analytics:
     For sample syntax, refer to:
-    http://thomas-cokelaer.info/tutorials/sphinx/rest_syntax.html
     https://pythonhosted.org/an_example_pypi_project/sphinx.html
     https://docs.python.org/devguide/documenting.html
-    https://raw.githubusercontent.com/rtfd/readthedocs.org/master/docs/index.rst
-    http://docs.readthedocs.org/en/latest/index.html
+    http://eseth.org/2010/blogging-with-sphinx.html
     https://github.com/whiteinge/eseth/blob/master/templates/layout.html#L151
 
 

@@ -56,6 +56,7 @@ docs:
 	open docs/_build/html/index.html
 
 release: clean
+	# gitflow: http://danielkummer.github.io/git-flow-cheatsheet/
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload
 
