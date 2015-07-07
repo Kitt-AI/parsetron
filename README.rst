@@ -30,6 +30,11 @@ Installation
 
 Parsetron is tested under Python 2.7 and Pypy. It doesn't support Python 3 yet.
 
+Documentation and Tutorial
+--------------------------
+
+http://parsetron.kitt.ai
+
 Quick Start
 -----------
 
