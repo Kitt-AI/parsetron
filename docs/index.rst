@@ -38,6 +38,7 @@ Parsetron, a Robust Semantic Parser
 
 :Source: https://github.com/Kitt-AI/parsetron
 
+:Release: v0.1.1
 
 .. rubric:: Table of Contents
 

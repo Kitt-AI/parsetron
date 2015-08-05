@@ -17,7 +17,7 @@ __doc__ = \
     """
 
 __title__ = 'parsetron'
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = 'Xuchen Yao'
 __license__ = 'Apache 2.0'
 
@@ -1383,14 +1383,16 @@ class TreeNode(object):
     :param Edge parent: an edge in Chart
     :param list children: a list of :class:`TreeNode`
     :param str lexicon: matched string when this node is a leaf node.
+    :param (int,int) lex_span: (start, end) of lexical token offset.
     """
 
-    def __init__(self, parent, children, lexicon=None):
+    def __init__(self, parent, children, lexicon, lex_span):
         self.parent = parent
         if type(children) is tuple:
             children = list(children)
         self.children = children
         self.lexicon = lexicon
+        self.lex_span = lex_span
         # flatten recursive production:
         # (OneOrMore(one_parse)
         #   (one_parse ...  )
@@ -1539,7 +1541,7 @@ class TreeNode(object):
                 children.append(c)
                 child_results.append(r)
 
-        result = ParseResult(name, self.lexicon, parent_as_flat)
+        result = ParseResult(name, self.lexicon, parent_as_flat, self.lex_span)
 
         if len(children) != 0:
             name2count = Counter(name for c in child_results
@@ -1871,11 +1873,14 @@ class ParseResult(object):
     - Else make the name hold a string value.
 
     """
-    def __init__(self, name, lexicon, as_flat=True):
+    def __init__(self, name, lexicon, as_flat=True, lex_span=(None,None)):
         super(ParseResult, self).__setattr__("_name", name)
         super(ParseResult, self).__setattr__("_as_flat", as_flat)
+        super(ParseResult, self).__setattr__("_lex_span", lex_span)
+        super(ParseResult, self).__setattr__("_span_suffix", "_span_")
         if as_flat:
-            super(ParseResult, self).__setattr__("_results", {name: lexicon})
+            super(ParseResult, self).__setattr__(
+                "_results", {name: lexicon, name+self._span_suffix: lex_span})
         else:
             super(ParseResult, self).__setattr__("_results", {name: [lexicon]})
 
@@ -1913,6 +1918,24 @@ class ParseResult(object):
                 self.add_item(k, v)
         else:
             self.add_item(result.name(), result)
+
+    def lex_span(self, name=None):
+        """
+        Return the lexical span of this result (if `name=None`) or the result
+        `name`. For instance::
+
+            _, result = parser.parse('blink lights')
+            assert result.lex_span() == (1,3)
+            assert result.lex_span("action") == (1,2)
+
+        :param str name: when None, return self span, otherwise, return
+                         child result's span
+        :return: (int, int)
+        """
+        if name:
+            return self.get(name+self._span_suffix)
+        else:
+            return self._lex_span
 
     def __contains__(self, item):
         return item in self._results
@@ -2010,6 +2033,13 @@ class Chart(object):
         # current parsing progress; when chart_i = m, it means we are
         # considering the token between m-1 and m.
         self.chart_i = 0
+        # holds lexical indices back to original sentence with the format:
+        # self.lex_idx[edge_start] = (lex_start, lex_end)
+        # e.g., self.lex_idx[0] = (3,4) means the edge between [0,1] covers
+        # tokens[3:4] in original sentence. If we want to find out what the
+        # edge [0, 3] covers, then we need to know self.lex_idx[0]'s lex_start
+        # and self.lex_idx[2]'s lex_end
+        self.lex_idx = [(None, None) for _ in xrange(size)]
 
     def _init_pointers(self):
         # edge2backpointers hold only tuples of children edges
@@ -2018,6 +2048,64 @@ class Chart(object):
         # productions (e.g., NP -> NP CC NP while verion 1 has to be sth like:
         # NP -> (NP CC) NP
         self.edge2backpointers = {}
+
+    def set_lexical_span(self, start, end, i=None):
+        """
+        set the lexical span at `i` in chart to (`start`, `end`).
+        if `i` is None, then default to the last slot in chart
+        (`self.chart_i-1`). *lexical span* here means the span chart at `i`
+        points to in the original sentence. For instance, for the following
+        sentence::
+
+            please [turn off] the [lights]
+
+        with parsed items in [], then the lexical span will look like::
+
+            start = 1, end = 3, i = 0
+            start = 4, end = 5, i = 1
+        """
+        if i is None:
+            i = self.chart_i - 1
+        self.lex_idx[i] = (start, end)
+
+    def get_lexical_span(self, start, end=None):
+        """
+        Get the lexical span chart covers from `start` to `end`. For instance,
+        for the following sentence::
+
+            please [turn off] the [lights]
+
+        with parsed items in [], then the lexical span will look like::
+
+            when end = None, function assumes end=start+1
+            if start = 0 and end = None, then return (1, 3)
+            if start = 1 and end = None, then return (4, 5)
+            if start = 0 and end = 1, then return (1, 5)
+
+        :param int start:
+        :param int end:
+        :return: (int, int)
+        """
+        if end is None:
+            if start >= self.chart_i:
+                raise ValueError("start (%d) >= chart size: %d"
+                                 % (start, self.chart_i))
+            return self.lex_idx[start]
+        else:
+            if end > self.chart_i:
+                raise ValueError("end (%d) > chart size: %d"
+                                 % (end, self.chart_i))
+            return self.lex_idx[start][0], self.lex_idx[end-1][1]
+
+    def get_edge_lexical_span(self, edge):
+        """
+        syntactic sugar for calling
+        `self.get_lexical_span(edge.start, edge.end)`
+
+        :param Edge edge:
+        :return: (int, int)
+        """
+        return self.get_lexical_span(edge.start, edge.end)
 
     def add_edge(self, edge, prev_edge, child_edge, lexicon=''):
         """
@@ -2211,11 +2299,14 @@ class Chart(object):
                 child_trees = [self._trees(child_edge, tokens) for
                                child_edge in children_edges]
                 for t in itertools.product(*child_trees):
-                    trees.append(TreeNode(parent_edge, t, lexicon))
+                    trees.append(
+                        TreeNode(parent_edge, t, lexicon,
+                                 self.get_edge_lexical_span(parent_edge)))
         else:
             # leaf child edge doesn't have backpointers
             # previous edges do, but we are only retrieving child edges
-            trees = [TreeNode(parent_edge, [], lexicon=lexicon)]
+            trees = [TreeNode(parent_edge, [], lexicon,
+                              self.get_edge_lexical_span(parent_edge))]
 
         return trees
 
@@ -2249,11 +2340,14 @@ class Chart(object):
                           c_trees) for c_trees in child_trees_list])
             child_trees = cc[0][1]
             for t in itertools.product(*child_trees):
-                trees.append(TreeNode(parent_edge, t, lexicon))
+                trees.append(
+                    TreeNode(parent_edge, t, lexicon,
+                             self.get_edge_lexical_span(parent_edge)))
         else:
             # leaf child edge doesn't have backpointers
             # previous edges do, but we are only retrieving child edges
-            trees = [TreeNode(parent_edge, [], lexicon=lexicon)]
+            trees = [TreeNode(parent_edge, [], lexicon,
+                              self.get_edge_lexical_span(parent_edge))]
 
         return trees
 
@@ -2294,6 +2388,7 @@ class IncrementalChart(Chart):
         self.edges += [[set() for _ in xrange(self.max_size + self.inc_size)]
                        for _ in xrange(self.inc_size)]
         self.max_size += self.inc_size
+        self.lex_idx += [(None, None) for _ in xrange(self.inc_size)]
 
     def add_edge(self, edge, prev_edge, child_edge, lexicon=''):
         if edge.end >= self.size:
@@ -2628,7 +2723,7 @@ class RobustParser(object):
         while progress < num and not is_parsed:
             single_list = [" ".join(self.to_be_parsed[progress:])]
             (chart, parsed_tokens) = self._parse_multi_token(
-                single_list, chart)
+                single_list, chart, progress)
             is_parsed = len(parsed_tokens) > 0
             if is_parsed:
                 self.to_be_parsed = []
@@ -2636,7 +2731,8 @@ class RobustParser(object):
 
         return chart, parsed_tokens
 
-    def incremental_parse(self, single_token, is_final, only_goal=True):
+    def incremental_parse(self, single_token, is_final, only_goal=True,
+                          is_first=False):
         """
         Incremental parsing one token each time. Returns the best parsing tree
         and parse result.
@@ -2645,10 +2741,13 @@ class RobustParser(object):
         :param bool is_final: whether the current `single_token` is the last
             one in sentence.
         :param bool only_goal: only output trees with GOAL as root node
+        :param bool is_first: whether `single_token` is the first token
         :return: (best parse tree, parse result)
         :rtype: tuple(:class:`TreeNode`, :class:`ParseResult`) or (None, None)
         """
         try:
+            if is_first:
+                self.clear_cache()
             self.chart, parsed_tokens = self.incremental_parse_to_chart(
                 single_token, self.chart)
             if len(parsed_tokens) > 0:
@@ -2716,11 +2815,12 @@ class RobustParser(object):
         all_parsed_tokens = []
 
         chart, parsed_tokens = None, None
+        lex_start = 0
 
         # "I want to turn off the lights please"
         while True and len(to_be_parsed) > 0:
             (chart, parsed_tokens) = self._parse_multi_token(
-                to_be_parsed, chart)
+                to_be_parsed, chart, lex_start)
 
             # items in parsed_tokens could be multi-token: ["turn off"]
             ret_len_in_single_tokens = sum([len(t.split())
@@ -2729,6 +2829,7 @@ class RobustParser(object):
             if ret_len_in_single_tokens == 0:
                 # can't parse, skip the first token
                 to_be_parsed.pop(0)
+                lex_start += 1
             elif ret_len_in_single_tokens == len(to_be_parsed):
                 all_parsed_tokens += parsed_tokens
                 break  # have a parse
@@ -2737,6 +2838,7 @@ class RobustParser(object):
                 # and try once again
                 all_parsed_tokens += parsed_tokens
                 to_be_parsed = to_be_parsed[ret_len_in_single_tokens + 1:]
+                lex_start += (ret_len_in_single_tokens + 1)
 
         if not self.logger.disabled and chart:
             self.logger.debug("Chart:")
@@ -2760,7 +2862,7 @@ class RobustParser(object):
                                          phrase)
         return progressed
 
-    def _parse_multi_token(self, sent_or_tokens, chart=None):
+    def _parse_multi_token(self, sent_or_tokens, chart=None, lex_start=None):
         """
         Parse sentences while being able to tokenize multiple tokens,
         for instance:
@@ -2818,6 +2920,10 @@ class RobustParser(object):
 
             if progressed:
                 new_tokens.append(phrase)
+                if lex_start is not None:
+                    chart.set_lexical_span(lex_start,
+                                           lex_start+phrase_end-phrase_start)
+                    lex_start += phrase_end-phrase_start
 
         if not self.logger.disabled:
             self.logger.debug("Agenda total: %d" % agenda.total)
@@ -2828,6 +2934,7 @@ class RobustParser(object):
         alias of :func:`parse`.
         """
         chart, tokens = self.parse_to_chart(string)
+        self.chart = chart
         try:
             trees = list(chart.trees(tokens, all_trees=False, goal=self.goal))
             best_tree, best_parse = chart.best_tree_with_parse_result(trees)
