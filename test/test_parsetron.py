@@ -332,7 +332,7 @@ class TestParser(object):
         color = String("red").replace_result_with((255, 0, 0))
         action = Regex(r"(turn on|turn off|off|blink)")
         times = Regex(r"(once|twice|three times)").set_result_action(times2int)
-        GOAL = action + Optional(color) + light + Optional(times) + \
+        GOAL = action + Optional(color) + light + ZeroOrMore(times) + \
             String("quickly")('quick')
     light = LightGrammar()
     parser = RobustParser(light)
@@ -350,7 +350,7 @@ class TestParser(object):
 
         t, r = parser.parse(test_str)
         # test result
-        assert r.times == 1
+        assert r.times == [1]
         assert r.color == (255, 0, 0)
         print(repr(r))  # test __repr__()
         assert 'quickly' in r.values()
@@ -388,7 +388,7 @@ class TestParser(object):
         test_str = TestParser.test_str
         parser.print_incremental_parse(test_str)
 
-        assert (None, None) == parser.incremental_parse('blink', False)
+        assert (None, None) == parser.incremental_parse('blink', False, is_first=True)
         assert (None, None) == parser.incremental_parse('light', False)
         t, r = parser.incremental_parse('quickly', is_final=True)
         assert t is not None
@@ -429,6 +429,55 @@ class TestParser(object):
                                  goal=FullGrammar.GOAL))
         print(chart)  # test chart __str__()
         assert len(trees) == 4
+
+    def test_lex_span(self):
+        parser = TestParser.parser
+        test_str = "please turn off the light once twice quickly"
+        _ = "       0      1    2   3   4     5    6     7"
+        tree, result = parser.parse(test_str)
+        # turn off
+        assert parser.chart.get_lexical_span(0) == (1, 3)
+        # light
+        assert parser.chart.get_lexical_span(1) == (4, 5)
+        # once
+        assert parser.chart.get_lexical_span(2) == (5, 6)
+        # twice
+        assert parser.chart.get_lexical_span(3) == (6, 7)
+        # quickly
+        assert parser.chart.get_lexical_span(4) == (7, 8)
+        # turn off (the) light
+        assert parser.chart.get_lexical_span(0, 2) == (1, 5)
+        assert result.action == "turn off"
+        assert result.times == [1, 2]
+        assert result.lex_span() == (1, 8)
+        assert result.lex_span('action') == (1, 3)
+        assert result.lex_span('times') == [(5, 6), (6, 7)]
+        assert result.lex_span('quick') == (7, 8)
+
+
+class TestHierarchicalParser(object):
+    class LightGrammar(Grammar):
+        light = String("light").ignore()
+        color = String("red").replace_result_with((255, 0, 0))
+        action = Regex(r"(turn on|turn off|off|blink)")
+        times = Regex(r"(once|twice|three times)")
+        one_parse = action + Optional(color) + light + ZeroOrMore(times)
+        GOAL = OneOrMore(one_parse)
+
+    light = LightGrammar()
+    parser = RobustParser(light)
+    test_str = "blink the red light once turn off red the light twice"
+    _ = "       0     1   2   3     4    5    6   7   8   9     10 "
+
+    def test_parse(self):
+        parser = TestHierarchicalParser.parser
+        test_str = TestHierarchicalParser.test_str
+        tree, result = parser.parse(test_str)
+        assert len(result.one_parse) == 2
+        assert result.lex_span() == (0, 11)
+        assert result.one_parse[0].lex_span() == (0, 5)
+        assert result.one_parse[1].lex_span() == (5, 11)
+        assert result.one_parse[1].lex_span('action') == (5, 7)
 
 
 def test_topdown_init_rule():
